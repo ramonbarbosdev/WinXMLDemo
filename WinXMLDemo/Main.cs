@@ -20,7 +20,11 @@ namespace WinXMLDemo
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            txtArquivoXml.Text = "C:\\Users\\W5IRamon\\Desktop\\TESTES\\PRODUTO.xml";
+            txtArquivoXml.Text = "C:\\Users\\W5IRamon\\Desktop";
+            txtServidor.Text = "localhost";
+            txtBaseDados.Text = "PM_MATASAOJOAO_LICITACAO";
+            txtUsuario.Text = "user";
+            txtSenha.Text = "123";
 
         }
 
@@ -31,26 +35,6 @@ namespace WinXMLDemo
             if (openFileArquivo.ShowDialog() == DialogResult.OK)
             {
                 txtArquivoXml.Text = openFileArquivo.FileName;
-
-                //var caminho = txtArquivoXml.Text;
-                //string conexaoSQL = "Server=26.11.110.48;" +
-                //                    "Database=PM_MATASAOJOAO_CONTAB;" +
-                //                    "User Id=user;" +
-                //                    "Password=123;";
-
-                ////crio o objeto
-                //XmlManipulador xmlManipulador = new XmlManipulador(caminho, conexaoSQL);
-
-                ////leio o xml
-                //List<Dictionary<string, string>> lista = xmlManipulador.LerXmlDinamico("PRODUTO");
-
-                ////converto em tabela
-                //DataTable tabela = xmlManipulador.ConverterDataTable(lista);
-
-                ////crio a tabela no sql server
-
-                //xmlManipulador.CriarTabelaSQL("PRODUTO", tabela);
-
             }
 
         }
@@ -65,42 +49,89 @@ namespace WinXMLDemo
             {
                 if (txtArquivoXml.Text != "")
                 {
-                    string nomeTabela = "SETOR";
+
+                    
                     var caminho = txtArquivoXml.Text;
-                    string conexaoSQL = "Server=26.11.110.48;" +
-                                        "Database=PM_MATASAOJOAO_CONTAB;" +
-                                        "User Id=user;" +
-                                        "Password=123;";
+                    string conexaoSQL = ValidarCampoConexao();
 
-                    XmlManipulador xmlManipulador = new XmlManipulador(caminho, conexaoSQL);
-
-                    var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
-
-                    DataTable tabela = xmlManipulador.CriarDataTableColuna(colunas);
-
-                    var lista = xmlManipulador.LerXmlDinamico(nomeTabela, out colunas);
-
-                    foreach (var registro in lista)
+                    if (!string.IsNullOrEmpty(conexaoSQL))
                     {
-                        DataRow row = tabela.NewRow();
-                        foreach (var campo in registro)
-                        {
-                            row[campo.Key] = campo.Value;
-                        }
-                        tabela.Rows.Add(row);
+                        XmlManipulador xmlManipulador = new XmlManipulador(caminho, conexaoSQL);
+                        string nomeTabela = xmlManipulador.ObterNomeArquivo(caminho);
+
+                        var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
+
+                        DataTable tabela = xmlManipulador.CriarDataTableColuna(colunas);
+
+                        xmlManipulador.InverterOrdemColunas(tabela);
+
+                        var lista = xmlManipulador.ObterListaXml(nomeTabela, out colunas);
+
+                        xmlManipulador.AssociarDadosLista(lista, tabela);
+                        //foreach (var registro in lista)
+                        //{
+                        //    DataRow row = tabela.NewRow();
+                        //    foreach (var campo in registro)
+                        //    {
+                        //        row[campo.Key] = campo.Value;
+                        //    }
+                        //    tabela.Rows.Add(row);
+                        //}
+                        Console.WriteLine(tabela);
+
+                        xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
+
+                        List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
+                        string resultado = xmlManipulador.ExecutarInserts(comandos);
+                        txtResultado.Text = resultado;
                     }
-
-                    xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
-
-                    List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
-                    string resultado = xmlManipulador.ExecutarInserts(comandos);
-                    txtResultado.Text = resultado;
+                   
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"{ex.Message}");
+              
+                MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+
+        }
+
+        public string ValidarCampoConexao()
+        {
+            string servidor = txtServidor.Text;
+            string baseDados = txtBaseDados.Text;
+            string usuario = txtUsuario.Text;
+            string senha = txtSenha.Text;
+
+            if (string.IsNullOrEmpty(servidor))
+            {
+                MessageBox.Show("Informe do servidor!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(baseDados))
+            {
+                MessageBox.Show("Informe a base de dados!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                MessageBox.Show("Informe o usuario!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(senha))
+            {
+                MessageBox.Show("Informe a senha!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            string conexaoSQL = $"Server={servidor};" +
+                                $"Database={baseDados};" +
+                                $"User Id={usuario};" +
+                                $"Password={senha};";
+            return conexaoSQL;
         }
 
     }

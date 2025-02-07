@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -23,9 +24,68 @@ namespace WinXMLDemo
             StringConexao = stringConexao;
         }
 
+        public string ObterNomeArquivo(string caminhoArquivo)
+        {
+            string nomeArquivo =  "";
+
+            if(!string.IsNullOrEmpty(caminhoArquivo))
+            {
+                  nomeArquivo = Path.GetFileNameWithoutExtension(caminhoArquivo);
+            }
+
+            return nomeArquivo;
+        }
+
+        public string ValidarCampoConexao(string servidor, string baseDados, string usuario, string senha)
+        {
+            
+
+            if (string.IsNullOrEmpty(servidor) )
+            {
+                MessageBox.Show("Informe do servidor!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(baseDados))
+            {
+                MessageBox.Show("Informe a base de dados!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                MessageBox.Show("Informe o usuario!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(senha))
+            {
+                MessageBox.Show("Informe a senha!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "";
+            }
+
+            string conexaoSQL = $"Server={servidor};" +
+                                $"Database={baseDados};" +
+                                $"User Id={usuario};" +
+                                $"Password={senha};";
+            return conexaoSQL;
+        }
+
+        public void AssociarDadosLista(List<Dictionary<string, string>> lista, DataTable tabela)
+        {
+            foreach (var registro in lista)
+            {
+                DataRow row = tabela.NewRow();
+                foreach (var campo in registro)
+                {
+                    row[campo.Key] = campo.Value;
+                }
+                tabela.Rows.Add(row);
+            }
+        }
 
 
-        public List<Dictionary<string, string>> LerXmlDinamico(string tagPai, out List<string> colunas)
+        public List<Dictionary<string, string>> ObterListaXml(string tagPai, out List<string> colunas)
         {
             List<Dictionary<string, string>> listaRegistros = new List<Dictionary<string, string>>();
             colunas = new List<string>();
@@ -34,13 +94,8 @@ namespace WinXMLDemo
 
             string xmlContent;
             StreamReader sr = new StreamReader(CaminhoArquivo, Encoding.GetEncoding("iso-8859-1"));
-            //using (StreamReader sr = new StreamReader(CaminhoArquivo, Encoding.GetEncoding("iso-8859-1")))
-            //{
-            //}
+            
             xmlContent = sr.ReadToEnd();
-
-            //byte[] bytes = Encoding.GetEncoding("iso-8859-1").GetBytes(xmlContent);
-            //string xmlUtf8 = Encoding.UTF8.GetString(bytes);
 
             xmlDoc.LoadXml(xmlContent);
 
@@ -128,7 +183,8 @@ namespace WinXMLDemo
                         cmd.ExecuteNonQuery();
 
                         StringBuilder sqlCreate = new StringBuilder($"CREATE TABLE {nomeTabela} (");
-
+                        
+                        colunas.Reverse();
                         foreach (string coluna in colunas)
                         {
                             sqlCreate.Append($"[{coluna}] NVARCHAR(MAX), ");
@@ -189,10 +245,24 @@ namespace WinXMLDemo
             {
                 dataTable.Columns.Add(coluna, typeof(string));
             }
-
             return dataTable;
         }
 
+        public  void InverterOrdemColunas(DataTable dataTable)
+        {
+            List<string> colunasInvertidas = dataTable.Columns
+                                                      .Cast<DataColumn>()
+                                                      .Select(c => c.ColumnName)
+                                                      .Reverse()
+                                                      .ToList();
+
+            int posicao = 0;
+            foreach (string nomeColuna in colunasInvertidas)
+            {
+                dataTable.Columns[nomeColuna].SetOrdinal(posicao);
+                posicao++;
+            }
+        }
 
 
         public List<string> GerarComandosInsert(string nomeTabela, DataTable dataTable)

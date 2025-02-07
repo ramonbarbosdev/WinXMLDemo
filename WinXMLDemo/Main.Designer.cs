@@ -34,12 +34,26 @@
             this.openFileArquivo = new System.Windows.Forms.OpenFileDialog();
             this.btnGerarTabela = new System.Windows.Forms.Button();
             this.txtResultado = new System.Windows.Forms.Label();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.txtServidor = new System.Windows.Forms.TextBox();
+            this.txtBaseDados = new System.Windows.Forms.TextBox();
+            this.txtUsuario = new System.Windows.Forms.TextBox();
+            this.txtSenha = new System.Windows.Forms.TextBox();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(25, 25);
+            this.label1.Location = new System.Drawing.Point(12, 15);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(68, 13);
             this.label1.TabIndex = 0;
@@ -47,7 +61,7 @@
             // 
             // txtArquivoXml
             // 
-            this.txtArquivoXml.Location = new System.Drawing.Point(28, 42);
+            this.txtArquivoXml.Location = new System.Drawing.Point(15, 48);
             this.txtArquivoXml.Name = "txtArquivoXml";
             this.txtArquivoXml.Size = new System.Drawing.Size(364, 20);
             this.txtArquivoXml.TabIndex = 1;
@@ -55,7 +69,7 @@
             // 
             // btnArquivoXml
             // 
-            this.btnArquivoXml.Location = new System.Drawing.Point(398, 42);
+            this.btnArquivoXml.Location = new System.Drawing.Point(396, 46);
             this.btnArquivoXml.Name = "btnArquivoXml";
             this.btnArquivoXml.Size = new System.Drawing.Size(75, 23);
             this.btnArquivoXml.TabIndex = 2;
@@ -69,7 +83,7 @@
             // 
             // btnGerarTabela
             // 
-            this.btnGerarTabela.Location = new System.Drawing.Point(28, 97);
+            this.btnGerarTabela.Location = new System.Drawing.Point(15, 171);
             this.btnGerarTabela.Name = "btnGerarTabela";
             this.btnGerarTabela.Size = new System.Drawing.Size(75, 23);
             this.btnGerarTabela.TabIndex = 3;
@@ -80,26 +94,133 @@
             // txtResultado
             // 
             this.txtResultado.AutoSize = true;
-            this.txtResultado.Location = new System.Drawing.Point(28, 137);
+            this.txtResultado.Location = new System.Drawing.Point(96, 176);
             this.txtResultado.Name = "txtResultado";
             this.txtResultado.Size = new System.Drawing.Size(0, 13);
             this.txtResultado.TabIndex = 4;
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Location = new System.Drawing.Point(12, 13);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(594, 226);
+            this.tabControl1.TabIndex = 5;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.txtArquivoXml);
+            this.tabPage1.Controls.Add(this.txtResultado);
+            this.tabPage1.Controls.Add(this.label1);
+            this.tabPage1.Controls.Add(this.btnGerarTabela);
+            this.tabPage1.Controls.Add(this.btnArquivoXml);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(586, 200);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "XML para SQL";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.txtSenha);
+            this.tabPage2.Controls.Add(this.txtUsuario);
+            this.tabPage2.Controls.Add(this.txtBaseDados);
+            this.tabPage2.Controls.Add(this.txtServidor);
+            this.tabPage2.Controls.Add(this.label5);
+            this.tabPage2.Controls.Add(this.label4);
+            this.tabPage2.Controls.Add(this.label3);
+            this.tabPage2.Controls.Add(this.label2);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(586, 200);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "Conexão";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 16);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(46, 13);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Servidor";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 89);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(43, 13);
+            this.label3.TabIndex = 1;
+            this.label3.Text = "Usuario";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(295, 16);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(80, 13);
+            this.label4.TabIndex = 2;
+            this.label4.Text = "Base de Dados";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(295, 74);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(38, 13);
+            this.label5.TabIndex = 3;
+            this.label5.Text = "Senha";
+            // 
+            // txtServidor
+            // 
+            this.txtServidor.Location = new System.Drawing.Point(15, 48);
+            this.txtServidor.Name = "txtServidor";
+            this.txtServidor.Size = new System.Drawing.Size(261, 20);
+            this.txtServidor.TabIndex = 4;
+            // 
+            // txtBaseDados
+            // 
+            this.txtBaseDados.Location = new System.Drawing.Point(298, 48);
+            this.txtBaseDados.Name = "txtBaseDados";
+            this.txtBaseDados.Size = new System.Drawing.Size(261, 20);
+            this.txtBaseDados.TabIndex = 5;
+            // 
+            // txtUsuario
+            // 
+            this.txtUsuario.Location = new System.Drawing.Point(15, 118);
+            this.txtUsuario.Name = "txtUsuario";
+            this.txtUsuario.Size = new System.Drawing.Size(261, 20);
+            this.txtUsuario.TabIndex = 6;
+            // 
+            // txtSenha
+            // 
+            this.txtSenha.Location = new System.Drawing.Point(298, 118);
+            this.txtSenha.Name = "txtSenha";
+            this.txtSenha.Size = new System.Drawing.Size(261, 20);
+            this.txtSenha.TabIndex = 7;
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(618, 251);
-            this.Controls.Add(this.txtResultado);
-            this.Controls.Add(this.btnGerarTabela);
-            this.Controls.Add(this.btnArquivoXml);
-            this.Controls.Add(this.txtArquivoXml);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.tabControl1);
             this.Name = "Main";
             this.Text = "Conversor XML";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage1.PerformLayout();
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -111,6 +232,17 @@
         private System.Windows.Forms.OpenFileDialog openFileArquivo;
         private System.Windows.Forms.Button btnGerarTabela;
         private System.Windows.Forms.Label txtResultado;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.TextBox txtSenha;
+        private System.Windows.Forms.TextBox txtUsuario;
+        private System.Windows.Forms.TextBox txtBaseDados;
+        private System.Windows.Forms.TextBox txtServidor;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label2;
     }
 }
 
