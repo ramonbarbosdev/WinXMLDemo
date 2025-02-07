@@ -49,14 +49,15 @@ namespace WinXMLDemo
             {
                 if (txtArquivoXml.Text != "")
                 {
-
-                    
                     var caminho = txtArquivoXml.Text;
+                    
                     string conexaoSQL = ValidarCampoConexao();
 
                     if (!string.IsNullOrEmpty(conexaoSQL))
                     {
                         XmlManipulador xmlManipulador = new XmlManipulador(caminho, conexaoSQL);
+            
+                        xmlManipulador.ValidarArquivoXml(caminho);
                         string nomeTabela = xmlManipulador.ObterNomeArquivo(caminho);
 
                         var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
@@ -68,16 +69,6 @@ namespace WinXMLDemo
                         var lista = xmlManipulador.ObterListaXml(nomeTabela, out colunas);
 
                         xmlManipulador.AssociarDadosLista(lista, tabela);
-                        //foreach (var registro in lista)
-                        //{
-                        //    DataRow row = tabela.NewRow();
-                        //    foreach (var campo in registro)
-                        //    {
-                        //        row[campo.Key] = campo.Value;
-                        //    }
-                        //    tabela.Rows.Add(row);
-                        //}
-                        Console.WriteLine(tabela);
 
                         xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
 

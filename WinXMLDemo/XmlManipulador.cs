@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Schema;
 
 namespace WinXMLDemo
 {
@@ -99,24 +101,35 @@ namespace WinXMLDemo
 
             xmlDoc.LoadXml(xmlContent);
 
-            XmlNodeList registros = xmlDoc.GetElementsByTagName(tagPai);
+            XDocument xDoc = XDocument.Parse(xmlContent);
+            bool fl_tagpai = ValidarTagPai(xDoc, tagPai);
 
-            foreach (XmlNode registro in registros)
+            if(fl_tagpai == true)
             {
-                Dictionary<string, string> dados = new Dictionary<string, string>();
 
+                XmlNodeList registros = xmlDoc.GetElementsByTagName(tagPai);
 
-                foreach (XmlNode campo in registro.ChildNodes)
+                foreach (XmlNode registro in registros)
                 {
-                    if (!colunas.Contains(campo.Name)) 
-                    {
-                        colunas.Add(campo.Name);
-                    }
-                    //var valor = removerCaracteresEspeciais(campo.InnerText);
-                    dados[campo.Name] = campo.InnerText;
-                }
+                    Dictionary<string, string> dados = new Dictionary<string, string>();
 
-                listaRegistros.Add(dados.Reverse2());
+
+                    foreach (XmlNode campo in registro.ChildNodes)
+                    {
+                        if (!colunas.Contains(campo.Name))
+                        {
+                            colunas.Add(campo.Name);
+                        }
+                        //var valor = removerCaracteresEspeciais(campo.InnerText);
+                        dados[campo.Name] = campo.InnerText;
+                    }
+
+                    listaRegistros.Add(dados.Reverse2());
+                }
+            }
+            else
+            {
+                MessageBox.Show("Tag pai não encontrada no arquivo XML!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             return listaRegistros;
@@ -343,6 +356,57 @@ namespace WinXMLDemo
             }
         }
 
+        public void ValidarArquivoXml(string xmlFilePath)
+        {
+            //string xsdFilePath = "caminho/para/seu/schema.xsd";
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            //settings.Schemas.Add(null, xsdFilePath);
+            settings.ValidationType = ValidationType.Schema;
+            settings.ValidationEventHandler += new ValidationEventHandler(ValidationEventHandler);
+
+            using (XmlReader reader = XmlReader.Create(xmlFilePath, settings))
+            {
+                try
+                {
+                    while (reader.Read()) { }
+                    Console.WriteLine("O arquivo XML é válido.");
+                }
+                catch (XmlException ex)
+                {
+                   
+                    MessageBox.Show(TratarErroXml(ex), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //Console.WriteLine($"Erro de XML: {ex.Message}");
+                }
+            }
+        }
+
+        static string TratarErroXml(XmlException ex)
+        {
+
+            if (ex.Message == "Dados no nível raiz inválidos. Linha 1, posição 1.")
+            {
+                return "Erro: Arquivo invalido. Verifique a estrutura ou o tipo de arquivo!";
+            }
+            else
+            {
+                return ex.Message;
+            }
+
+            //LogErro(ex);
+        }
+
+        static void ValidationEventHandler(object sender, ValidationEventArgs e)
+        {
+            if (e.Severity == XmlSeverityType.Warning)
+            {
+                Console.WriteLine($"Aviso: {e.Message}");
+            }
+            else if (e.Severity == XmlSeverityType.Error)
+            {
+                Console.WriteLine($"Erro: {e.Message}");
+            }
+        }
 
 
 
@@ -356,6 +420,20 @@ namespace WinXMLDemo
             }
 
             return texto;
+        }
+        static bool ValidarTagPai(XDocument xDoc, string tagPai)
+        {
+            foreach (var elemento in xDoc.Descendants())
+            {
+                if(elemento.Name.LocalName == tagPai)
+                {
+                    //Console.WriteLine(elemento.Name.LocalName);
+                    return true;
+                }
+               
+            }
+
+            return false;
         }
 
 
