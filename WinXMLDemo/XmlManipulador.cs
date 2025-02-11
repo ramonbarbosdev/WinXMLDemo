@@ -300,7 +300,7 @@ namespace WinXMLDemo
                 foreach (DataColumn coluna in dataTable.Columns)
                 {
                     string valor = row[coluna]?.ToString() ?? "NULL";
-                    valor = removerCaracteresEspeciais(valor);
+                    //valor = removerCaracteresEspeciais(valor);
 
                     if (string.IsNullOrEmpty(valor) || valor == "NULL")
                     {
@@ -323,37 +323,70 @@ namespace WinXMLDemo
 
         public string ExecutarInserts(List<string> comandosSQL)
         {
-            using (SqlConnection conexao = new SqlConnection(StringConexao))
+            var conexao = AbrirConexao();
+
+            try
             {
-                conexao.Open();
-                using (SqlTransaction transacao = conexao.BeginTransaction())
+                var transacao = conexao.BeginTransaction();
+                SqlCommand cmd = new SqlCommand();
+
+                cmd.Connection = conexao;
+                cmd.Transaction = transacao;
+
+                int totalInseridos = 0;
+                int contador = 0;
+
+                var loteSQL = new List<string>();
+
+                foreach (string sql in comandosSQL)
                 {
-                    try
+                    loteSQL.Add(sql);
+                    contador++;
+
+                    if (contador % 55000 == 0 || contador == comandosSQL.Count)
                     {
-                        using (SqlCommand cmd = new SqlCommand())
-                        {
-                            cmd.Connection = conexao;
-                            cmd.Transaction = transacao;
+                        cmd.CommandText = string.Join(";", loteSQL);
+                        totalInseridos += cmd.ExecuteNonQuery();
+                        transacao.Commit();
 
-                            int totalInseridos = 0;
+                        loteSQL.Clear();
 
-                            foreach (string sql in comandosSQL)
-                            {
-                                cmd.CommandText = sql;
-                                totalInseridos += cmd.ExecuteNonQuery();
-                            }
-
-                            transacao.Commit();
-                            return $"Registros inseridos com sucesso: {totalInseridos}";
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        transacao.Rollback();
-                        return $"Erro ao inserir registros: {ex.Message}";
+                        transacao.Dispose();
+                        transacao = conexao.BeginTransaction(); 
+                        cmd.Transaction = transacao;
                     }
                 }
+          
+                return $"Registros inseridos com sucesso: {totalInseridos}";
             }
+            catch (Exception ex)
+            {
+                return $"Erro ao inserir registros: {ex.Message}";
+            }
+            finally
+            {
+                FecharConexao(conexao);
+            }
+            
+        }
+
+        public SqlConnection AbrirConexao()
+        {
+            SqlConnection conexao = new SqlConnection(StringConexao);
+            conexao.Open();
+            //SqlTransaction transacao = conexao.BeginTransaction();
+            return conexao;
+        }
+        public static void FecharConexao(SqlConnection conexao)
+        {
+            if (conexao != null && conexao.State != ConnectionState.Closed)
+            {
+                conexao.Close();
+            }
+        }
+        public static void Rollback(SqlTransaction transacao)
+        {
+            transacao.Rollback();
         }
 
         public void ValidarArquivoXml(string xmlFilePath)

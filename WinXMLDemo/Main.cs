@@ -73,6 +73,7 @@ namespace WinXMLDemo
                         xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
 
                         List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
+                        //Console.WriteLine(comandos);
                         string resultado = xmlManipulador.ExecutarInserts(comandos);
                         txtResultado.Text = resultado;
                     }
