@@ -47,6 +47,8 @@ namespace WinXMLDemo
         {
             try
             {
+                //TO:DO = QUANDO TENTO INSERIR OS REGISTRO COM A TABELA CRIADA, ELE EXCLUIR OS REGISTROS EXISTENTES 
+                //TO:DO = QUANDO A TABELA É CRIADA, ESTÁ DEIXANDO A ORDEM DAS COLUNAS FORA DE ORDEM
                 if (txtArquivoXml.Text != "")
                 {
                     var caminho = txtArquivoXml.Text;
