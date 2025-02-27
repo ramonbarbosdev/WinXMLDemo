@@ -48,6 +48,7 @@ namespace WinXMLDemo
             try
             {
                
+
                 if (txtArquivoXml.Text != "")
                 {
                     var caminho = txtArquivoXml.Text;
