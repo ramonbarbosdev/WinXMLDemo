@@ -93,11 +93,12 @@ namespace WinXMLDemo
             colunas = new List<string>();
 
             XmlDocument xmlDoc = new XmlDocument();
-
             string xmlContent;
             StreamReader sr = new StreamReader(CaminhoArquivo, Encoding.GetEncoding("iso-8859-1"));
             
             xmlContent = sr.ReadToEnd();
+
+            xmlContent = RemoverCaracteresInvalidos(xmlContent);
 
             xmlDoc.LoadXml(xmlContent);
 
@@ -129,10 +130,17 @@ namespace WinXMLDemo
             }
             else
             {
-                MessageBox.Show("Tag pai não encontrada no arquivo XML!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show("Tag pai não encontrada no arquivo XML!", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine($"Tag pai '{tagPai}' não encontrada no arquivo XML!");
             }
 
             return listaRegistros;
+        }
+
+        public string RemoverCaracteresInvalidos(string input)
+        {
+            // Remove caracteres de controle (0x00 a 0x1F, exceto 0x09, 0x0A, 0x0D)
+            return new string(input.Where(c => c >= 0x20 || c == 0x09 || c == 0x0A || c == 0x0D).ToArray());
         }
 
 
@@ -192,9 +200,13 @@ namespace WinXMLDemo
                     {
                         cmd.Connection = conexao;
 
-                        cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NULL " +
-                                            $"CREATE TABLE {nomeTabela} (";
-                        cmd.ExecuteNonQuery();
+                        cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0";
+                        int existe = (int)cmd.ExecuteScalar();
+
+                        if(existe == 1)
+                        {
+                            return $"Tabela '{nomeTabela}' já existe!";
+                        }
 
                         StringBuilder sqlCreate = new StringBuilder($"CREATE TABLE {nomeTabela} (");
                         
@@ -208,6 +220,10 @@ namespace WinXMLDemo
                         {
                             sqlCreate.Length -= 2; 
                         }
+                        else
+                        {
+                            return "Sem registros";
+                        }
 
                         sqlCreate.Append(");");
 
@@ -220,7 +236,9 @@ namespace WinXMLDemo
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return $"Erro ao criar tabela: {ex.Message}";
+
             }
         }
 
@@ -348,6 +366,7 @@ namespace WinXMLDemo
                     if (contador % 55000 == 0 || contador == comandosSQL.Count)
                     {
                         cmd.CommandText = string.Join(";", loteSQL);
+                        Console.WriteLine(cmd.CommandText);
                         totalInseridos += cmd.ExecuteNonQuery();
                         transacao.Commit();
 

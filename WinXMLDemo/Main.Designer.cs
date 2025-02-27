@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.label1 = new System.Windows.Forms.Label();
-            this.txtArquivoXml = new System.Windows.Forms.TextBox();
+            this.arquivoXml = new System.Windows.Forms.TextBox();
             this.btnArquivoXml = new System.Windows.Forms.Button();
             this.openFileArquivo = new System.Windows.Forms.OpenFileDialog();
             this.btnGerarTabela = new System.Windows.Forms.Button();
@@ -45,6 +45,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.abrirCaixaPesquisa = new System.Windows.Forms.FolderBrowserDialog();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -60,19 +61,19 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Arquivo XML";
             // 
-            // txtArquivoXml
+            // arquivoXml
             // 
-            this.txtArquivoXml.Location = new System.Drawing.Point(20, 59);
-            this.txtArquivoXml.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.txtArquivoXml.Name = "txtArquivoXml";
-            this.txtArquivoXml.Size = new System.Drawing.Size(484, 22);
-            this.txtArquivoXml.TabIndex = 1;
-            this.txtArquivoXml.TextChanged += new System.EventHandler(this.txtArquivoXml_TextChanged);
+            this.arquivoXml.Location = new System.Drawing.Point(20, 59);
+            this.arquivoXml.Margin = new System.Windows.Forms.Padding(4);
+            this.arquivoXml.Name = "arquivoXml";
+            this.arquivoXml.Size = new System.Drawing.Size(484, 22);
+            this.arquivoXml.TabIndex = 1;
+            this.arquivoXml.TextChanged += new System.EventHandler(this.txtArquivoXml_TextChanged);
             // 
             // btnArquivoXml
             // 
             this.btnArquivoXml.Location = new System.Drawing.Point(528, 57);
-            this.btnArquivoXml.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnArquivoXml.Margin = new System.Windows.Forms.Padding(4);
             this.btnArquivoXml.Name = "btnArquivoXml";
             this.btnArquivoXml.Size = new System.Drawing.Size(100, 28);
             this.btnArquivoXml.TabIndex = 2;
@@ -87,7 +88,7 @@
             // btnGerarTabela
             // 
             this.btnGerarTabela.Location = new System.Drawing.Point(20, 210);
-            this.btnGerarTabela.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnGerarTabela.Margin = new System.Windows.Forms.Padding(4);
             this.btnGerarTabela.Name = "btnGerarTabela";
             this.btnGerarTabela.Size = new System.Drawing.Size(100, 28);
             this.btnGerarTabela.TabIndex = 3;
@@ -109,7 +110,7 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Location = new System.Drawing.Point(16, 16);
-            this.tabControl1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tabControl1.Margin = new System.Windows.Forms.Padding(4);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(792, 278);
@@ -117,15 +118,15 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.txtArquivoXml);
+            this.tabPage1.Controls.Add(this.arquivoXml);
             this.tabPage1.Controls.Add(this.txtResultado);
             this.tabPage1.Controls.Add(this.label1);
             this.tabPage1.Controls.Add(this.btnGerarTabela);
             this.tabPage1.Controls.Add(this.btnArquivoXml);
             this.tabPage1.Location = new System.Drawing.Point(4, 25);
-            this.tabPage1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(4);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(4);
             this.tabPage1.Size = new System.Drawing.Size(784, 249);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "XML para SQL";
@@ -142,9 +143,9 @@
             this.tabPage2.Controls.Add(this.label3);
             this.tabPage2.Controls.Add(this.label2);
             this.tabPage2.Location = new System.Drawing.Point(4, 25);
-            this.tabPage2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(4);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(4);
             this.tabPage2.Size = new System.Drawing.Size(784, 249);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Conexão";
@@ -153,7 +154,7 @@
             // txtSenha
             // 
             this.txtSenha.Location = new System.Drawing.Point(397, 145);
-            this.txtSenha.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtSenha.Margin = new System.Windows.Forms.Padding(4);
             this.txtSenha.Name = "txtSenha";
             this.txtSenha.Size = new System.Drawing.Size(347, 22);
             this.txtSenha.TabIndex = 7;
@@ -161,7 +162,7 @@
             // txtUsuario
             // 
             this.txtUsuario.Location = new System.Drawing.Point(20, 145);
-            this.txtUsuario.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtUsuario.Margin = new System.Windows.Forms.Padding(4);
             this.txtUsuario.Name = "txtUsuario";
             this.txtUsuario.Size = new System.Drawing.Size(347, 22);
             this.txtUsuario.TabIndex = 6;
@@ -169,7 +170,7 @@
             // txtBaseDados
             // 
             this.txtBaseDados.Location = new System.Drawing.Point(397, 59);
-            this.txtBaseDados.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtBaseDados.Margin = new System.Windows.Forms.Padding(4);
             this.txtBaseDados.Name = "txtBaseDados";
             this.txtBaseDados.Size = new System.Drawing.Size(347, 22);
             this.txtBaseDados.TabIndex = 5;
@@ -177,7 +178,7 @@
             // txtServidor
             // 
             this.txtServidor.Location = new System.Drawing.Point(20, 59);
-            this.txtServidor.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.txtServidor.Margin = new System.Windows.Forms.Padding(4);
             this.txtServidor.Name = "txtServidor";
             this.txtServidor.Size = new System.Drawing.Size(347, 22);
             this.txtServidor.TabIndex = 4;
@@ -229,7 +230,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(824, 309);
             this.Controls.Add(this.tabControl1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Main";
             this.Text = "Conversor XML";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -245,7 +246,7 @@
         #endregion
 
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox txtArquivoXml;
+        private System.Windows.Forms.TextBox arquivoXml;
         private System.Windows.Forms.Button btnArquivoXml;
         private System.Windows.Forms.OpenFileDialog openFileArquivo;
         private System.Windows.Forms.Button btnGerarTabela;
@@ -261,6 +262,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.FolderBrowserDialog abrirCaixaPesquisa;
     }
 }
 

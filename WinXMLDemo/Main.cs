@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,9 +21,9 @@ namespace WinXMLDemo
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            txtArquivoXml.Text = "C:\\Users\\W5IRamon\\Desktop";
+            arquivoXml.Text = "C:\\Users\\W5IRamon\\Desktop";
             txtServidor.Text = "localhost";
-            txtBaseDados.Text = "PM_MATASAOJOAO_PATRIMONIO_NOVO";
+            txtBaseDados.Text = "BANCO_TESTE";
             txtUsuario.Text = "user";
             txtSenha.Text = "123";
 
@@ -30,11 +31,13 @@ namespace WinXMLDemo
 
         private void btnArquivoXml_Click(object sender, EventArgs e)
         {
-            txtArquivoXml.Clear();
+            arquivoXml.Clear();
 
-            if (openFileArquivo.ShowDialog() == DialogResult.OK)
+            if (abrirCaixaPesquisa.ShowDialog() == DialogResult.OK)
             {
-                txtArquivoXml.Text = openFileArquivo.FileName;
+                //txtArquivoXml.Text = openFileArquivo.FileName;
+                arquivoXml.Text = abrirCaixaPesquisa.SelectedPath;
+
             }
 
         }
@@ -47,40 +50,54 @@ namespace WinXMLDemo
         {
             try
             {
-               
 
-                if (txtArquivoXml.Text != "")
+
+                if (!string.IsNullOrEmpty(arquivoXml.Text))
                 {
-                    var caminho = txtArquivoXml.Text;
-                    
-                    string conexaoSQL = ValidarCampoConexao();
+                    var caminhoPasta = arquivoXml.Text;
+                    string resultado = "";
 
-                    if (!string.IsNullOrEmpty(conexaoSQL))
+                    if (Directory.Exists(caminhoPasta))
                     {
-                        XmlManipulador xmlManipulador = new XmlManipulador(caminho, conexaoSQL);
-            
-                        xmlManipulador.ValidarArquivoXml(caminho);
-                        string nomeTabela = xmlManipulador.ObterNomeArquivo(caminho);
+                        string conexaoSQL = ValidarCampoConexao();
 
-                        var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
+                        if (!string.IsNullOrEmpty(conexaoSQL))
+                        {
+                            var arquivosXml = Directory.GetFiles(caminhoPasta, "*.xml");
 
-                        DataTable tabela = xmlManipulador.CriarDataTableColuna(colunas);
+                            foreach (var caminhoArquivo in arquivosXml)
+                            {
+                                XmlManipulador xmlManipulador = new XmlManipulador(caminhoArquivo, conexaoSQL);
 
-                        xmlManipulador.InverterOrdemColunas(tabela);
+                                xmlManipulador.ValidarArquivoXml(caminhoArquivo);
+                                string nomeTabela = xmlManipulador.ObterNomeArquivo(caminhoArquivo);
 
-                        var lista = xmlManipulador.ObterListaXml(nomeTabela, out colunas);
+                                var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
 
-                        xmlManipulador.AssociarDadosLista(lista, tabela);
+                                DataTable tabela = xmlManipulador.CriarDataTableColuna(colunas);
 
-                        xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
+                                //xmlManipulador.InverterOrdemColunas(tabela);
 
-                        List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
-                        //Console.WriteLine(comandos);
-                        string resultado = xmlManipulador.ExecutarInserts(comandos);
-                        txtResultado.Text = resultado;
+                                var lista = xmlManipulador.ObterListaXml(nomeTabela, out colunas);
+
+                                xmlManipulador.AssociarDadosLista(lista, tabela);
+
+                                resultado = xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
+
+                                List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
+                                
+                                resultado = xmlManipulador.ExecutarInserts(comandos);
+                                
+                                txtResultado.Text = resultado;
+
+                            }
+     
+                        }
+
                     }
-                   
                 }
+
+               
             }
             catch (Exception ex)
             {
