@@ -192,12 +192,13 @@ namespace WinXMLDemo
                     {
                         cmd.Connection = conexao;
 
-                        cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NOT NULL DROP TABLE {nomeTabela};";
+                        cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NULL " +
+                                            $"CREATE TABLE {nomeTabela} (";
                         cmd.ExecuteNonQuery();
 
                         StringBuilder sqlCreate = new StringBuilder($"CREATE TABLE {nomeTabela} (");
                         
-                        colunas.Reverse();
+                        //colunas.Reverse();
                         foreach (string coluna in colunas)
                         {
                             sqlCreate.Append($"[{coluna}] NVARCHAR(MAX), ");
@@ -243,7 +244,8 @@ namespace WinXMLDemo
             {
                 foreach (XmlNode campo in registro.ChildNodes)
                 {
-                    colunas.Add(campo.Name);                 }
+                    colunas.Add(campo.Name);                
+                }
             }
 
             return colunas.ToList(); 

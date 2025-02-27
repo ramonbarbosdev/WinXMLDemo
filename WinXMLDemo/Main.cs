@@ -22,7 +22,7 @@ namespace WinXMLDemo
         {
             txtArquivoXml.Text = "C:\\Users\\W5IRamon\\Desktop";
             txtServidor.Text = "localhost";
-            txtBaseDados.Text = "PM_MATASAOJOAO_LICITACAO";
+            txtBaseDados.Text = "PM_MATASAOJOAO_PATRIMONIO_NOVO";
             txtUsuario.Text = "user";
             txtSenha.Text = "123";
 
@@ -47,8 +47,7 @@ namespace WinXMLDemo
         {
             try
             {
-                //TO:DO = QUANDO TENTO INSERIR OS REGISTRO COM A TABELA CRIADA, ELE EXCLUIR OS REGISTROS EXISTENTES 
-                //TO:DO = QUANDO A TABELA É CRIADA, ESTÁ DEIXANDO A ORDEM DAS COLUNAS FORA DE ORDEM
+               
                 if (txtArquivoXml.Text != "")
                 {
                     var caminho = txtArquivoXml.Text;
@@ -128,5 +127,9 @@ namespace WinXMLDemo
             return conexaoSQL;
         }
 
+        private void txtServidor_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
