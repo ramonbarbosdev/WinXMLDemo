@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -73,18 +74,6 @@ namespace WinXMLDemo
             return conexaoSQL;
         }
 
-        public void AssociarDadosLista(List<Dictionary<string, string>> lista, DataTable tabela)
-        {
-            foreach (var registro in lista)
-            {
-                DataRow row = tabela.NewRow();
-                foreach (var campo in registro)
-                {
-                    row[campo.Key] = campo.Value;
-                }
-                tabela.Rows.Add(row);
-            }
-        }
 
 
         public List<Dictionary<string, string>> ObterListaXml(string tagPai, out List<string> colunas)
@@ -94,18 +83,21 @@ namespace WinXMLDemo
 
             XmlDocument xmlDoc = new XmlDocument();
             string xmlContent;
-            StreamReader sr = new StreamReader(CaminhoArquivo, Encoding.GetEncoding("iso-8859-1"));
-            
-            xmlContent = sr.ReadToEnd();
+
+            using (StreamReader sr = new StreamReader(CaminhoArquivo, Encoding.GetEncoding("ISO-8859-1"))) // ou Encoding.UTF8
+            {
+                xmlContent = sr.ReadToEnd();
+            }
 
             xmlContent = RemoverCaracteresInvalidos(xmlContent);
 
             xmlDoc.LoadXml(xmlContent);
 
+     
             XDocument xDoc = XDocument.Parse(xmlContent);
             bool fl_tagpai = ValidarTagPai(xDoc, tagPai);
 
-            if(fl_tagpai == true)
+            if (fl_tagpai == true)
             {
 
                 XmlNodeList registros = xmlDoc.GetElementsByTagName(tagPai);
@@ -121,7 +113,7 @@ namespace WinXMLDemo
                         {
                             colunas.Add(campo.Name);
                         }
-                        //var valor = removerCaracteresEspeciais(campo.InnerText);
+
                         dados[campo.Name] = campo.InnerText;
                     }
 
@@ -137,9 +129,25 @@ namespace WinXMLDemo
             return listaRegistros;
         }
 
+      
+
+
+        public void AssociarDadosLista(List<Dictionary<string, string>> lista, DataTable tabela)
+        {
+            foreach (var registro in lista)
+            {
+                DataRow row = tabela.NewRow();
+                foreach (var campo in registro)
+                {
+                    row[campo.Key] = campo.Value;
+                }
+                tabela.Rows.Add(row);
+            }
+        }
+
+
         public string RemoverCaracteresInvalidos(string input)
         {
-            // Remove caracteres de controle (0x00 a 0x1F, exceto 0x09, 0x0A, 0x0D)
             return new string(input.Where(c => c >= 0x20 || c == 0x09 || c == 0x0A || c == 0x0D).ToArray());
         }
 
@@ -200,10 +208,9 @@ namespace WinXMLDemo
                     {
                         cmd.Connection = conexao;
 
-                        cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0";
-                        int existe = (int)cmd.ExecuteScalar();
+                        
 
-                        if(existe == 1)
+                        if(VerificarTabelaExistente( nomeTabela, cmd))
                         {
                             return $"Tabela '{nomeTabela}' já existe!";
                         }
@@ -232,7 +239,7 @@ namespace WinXMLDemo
                     }
                 }
 
-                return "Tabela criada com sucesso!";
+                return "Tabela criada com sucesso. Inserindo no banco de dados...";
             }
             catch (Exception ex)
             {
@@ -242,6 +249,34 @@ namespace WinXMLDemo
             }
         }
 
+        private Boolean VerificarTabelaExistente(string nomeTabela, SqlCommand cmd)
+        {
+            cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0";
+            int existe = (int)cmd.ExecuteScalar();
+            if (existe == 1)
+            {
+                DialogResult resultado = MessageBox.Show( $"A tabela '{nomeTabela}' já existe. Deseja sobrescrevê-la?",
+                                                        "Tabela já existe",
+                                                         MessageBoxButtons.YesNo,
+                                                         MessageBoxIcon.Question
+                                                         );
+
+                if (resultado == DialogResult.Yes)
+                {
+                    
+                    cmd.CommandText = $"DROP TABLE {nomeTabela}";
+                    cmd.ExecuteNonQuery();
+
+                    return false;
+                    
+                }
+
+                return true;
+               
+            }
+
+            return false;
+        }
         public List<string> ObterColunasXml(string tagPai)
         {
             HashSet<string> colunas = new HashSet<string>();
@@ -269,6 +304,9 @@ namespace WinXMLDemo
             return colunas.ToList(); 
         }
 
+         
+     
+        
 
         public DataTable CriarDataTableColuna(List<string> colunas)
         {
@@ -363,10 +401,9 @@ namespace WinXMLDemo
                     loteSQL.Add(sql);
                     contador++;
 
-                    if (contador % 55000 == 0 || contador == comandosSQL.Count)
+                    if (contador % 50000 == 0 || contador == comandosSQL.Count)
                     {
                         cmd.CommandText = string.Join(";", loteSQL);
-                        Console.WriteLine(cmd.CommandText);
                         totalInseridos += cmd.ExecuteNonQuery();
                         transacao.Commit();
 
@@ -382,6 +419,7 @@ namespace WinXMLDemo
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return $"Erro ao inserir registros: {ex.Message}";
             }
             finally
@@ -410,9 +448,10 @@ namespace WinXMLDemo
             transacao.Rollback();
         }
 
-        public void ValidarArquivoXml(string xmlFilePath)
+        public Boolean ValidarArquivoXml(string xmlFilePath)
         {
-            //string xsdFilePath = "caminho/para/seu/schema.xsd";
+
+            string nomeTabela = ObterNomeArquivo(xmlFilePath);
 
             XmlReaderSettings settings = new XmlReaderSettings();
             //settings.Schemas.Add(null, xsdFilePath);
@@ -425,29 +464,40 @@ namespace WinXMLDemo
                 {
                     while (reader.Read()) { }
                     Console.WriteLine("O arquivo XML é válido.");
+                    return true;
                 }
                 catch (XmlException ex)
                 {
                    
-                    MessageBox.Show(TratarErroXml(ex), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    //Console.WriteLine($"Erro de XML: {ex.Message}");
+                    MessageBox.Show(TratarErroXml(ex, nomeTabela), "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                  
+
                 }
             }
+            return false;
         }
 
-        static string TratarErroXml(XmlException ex)
+        static string TratarErroXml(XmlException ex, string nomeTabela = null)
         {
 
-            if (ex.Message == "Dados no nível raiz inválidos. Linha 1, posição 1.")
+            var match = Regex.Match(ex.Message, @"Linha (\d+), posição (\d+)");
+            string linha = match.Success ? match.Groups[1].Value : "desconhecida";
+            string posicao = match.Success ? match.Groups[2].Value : "desconhecida";
+
+            if (ex.Message.Contains("Dados no nível raiz inválidos"))
             {
-                return "Erro: Arquivo invalido. Verifique a estrutura ou o tipo de arquivo!";
+                return "Erro: Arquivo inválido. Verifique a estrutura ou o tipo de arquivo!";
+            }
+            else if (ex.Message.Contains("caractere inválido"))
+            {
+                return $"Erro: Existe um caractere inválido no arquivo '{nomeTabela}' na linha {linha}, posição {posicao}. Verifique a estrutura!";
             }
             else
             {
-                return ex.Message;
+                return $"Erro desconhecido: {ex.Message} (Linha: {linha}, Posição: {posicao})";
             }
 
-            //LogErro(ex);
+            Console.WriteLine(ex.Message);
         }
 
         static void ValidationEventHandler(object sender, ValidationEventArgs e)

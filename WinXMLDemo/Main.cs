@@ -50,8 +50,6 @@ namespace WinXMLDemo
         {
             try
             {
-
-
                 if (!string.IsNullOrEmpty(arquivoXml.Text))
                 {
                     var caminhoPasta = arquivoXml.Text;
@@ -65,12 +63,23 @@ namespace WinXMLDemo
                         {
                             var arquivosXml = Directory.GetFiles(caminhoPasta, "*.xml");
 
+                            var listaArquivos = new List<string>();
+
                             foreach (var caminhoArquivo in arquivosXml)
                             {
                                 XmlManipulador xmlManipulador = new XmlManipulador(caminhoArquivo, conexaoSQL);
 
-                                xmlManipulador.ValidarArquivoXml(caminhoArquivo);
+                                if(!xmlManipulador.ValidarArquivoXml(caminhoArquivo))
+                                {
+                                    continue;
+                                }
+
                                 string nomeTabela = xmlManipulador.ObterNomeArquivo(caminhoArquivo);
+
+                                //if(nomeTabela == "PATRIMONIO")
+                                //{
+                                //    Console.WriteLine("Aqui");
+                                //}
 
                                 var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
 
@@ -83,15 +92,18 @@ namespace WinXMLDemo
                                 xmlManipulador.AssociarDadosLista(lista, tabela);
 
                                 resultado = xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
-
-                                List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
-                                
-                                resultado = xmlManipulador.ExecutarInserts(comandos);
-                                
                                 txtResultado.Text = resultado;
 
+                                List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
+
+                                resultado = xmlManipulador.ExecutarInserts(comandos);
+
+                                listaArquivos.Add(nomeTabela);
                             }
-     
+
+                            //txtResultado.Text = string.Join(Environment.NewLine, listaArquivos);
+                            txtResultado.Text = "Concluido.";
+
                         }
 
                     }
