@@ -208,8 +208,6 @@ namespace WinXMLDemo
                     {
                         cmd.Connection = conexao;
 
-                        
-
                         if(VerificarTabelaExistente( nomeTabela, cmd))
                         {
                             return $"Tabela '{nomeTabela}' já existe!";
@@ -255,8 +253,8 @@ namespace WinXMLDemo
             int existe = (int)cmd.ExecuteScalar();
             if (existe == 1)
             {
-                DialogResult resultado = MessageBox.Show( $"A tabela '{nomeTabela}' já existe. Deseja sobrescrevê-la?",
-                                                        "Tabela já existe",
+                DialogResult resultado = MessageBox.Show( $"A tabela '{nomeTabela}' já existe. Deseja recria-la?",
+                                                        "Tabela existente",
                                                          MessageBoxButtons.YesNo,
                                                          MessageBoxIcon.Question
                                                          );
