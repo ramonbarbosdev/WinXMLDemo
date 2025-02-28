@@ -401,7 +401,7 @@ namespace WinXMLDemo
                     loteSQL.Add(sql);
                     contador++;
 
-                    if (contador % 50000 == 0 || contador == comandosSQL.Count)
+                    if (contador % 55000 == 0 || contador == comandosSQL.Count)
                     {
                         cmd.CommandText = string.Join(";", loteSQL);
                         totalInseridos += cmd.ExecuteNonQuery();

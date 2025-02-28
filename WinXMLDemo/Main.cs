@@ -48,75 +48,79 @@ namespace WinXMLDemo
 
         private void btnGerarTabela_Click(object sender, EventArgs e)
         {
+            ExecutarTrabalho();
+        }
+
+     
+
+        private async void ExecutarTrabalho()
+        {
             try
             {
-                if (!string.IsNullOrEmpty(arquivoXml.Text))
+                btnGerarTabela.Enabled = false;
+
+                if (string.IsNullOrEmpty(arquivoXml.Text))
                 {
-                    var caminhoPasta = arquivoXml.Text;
-                    string resultado = "";
-
-                    if (Directory.Exists(caminhoPasta))
-                    {
-                        string conexaoSQL = ValidarCampoConexao();
-
-                        if (!string.IsNullOrEmpty(conexaoSQL))
-                        {
-                            var arquivosXml = Directory.GetFiles(caminhoPasta, "*.xml");
-
-                            var listaArquivos = new List<string>();
-
-                            foreach (var caminhoArquivo in arquivosXml)
-                            {
-                                XmlManipulador xmlManipulador = new XmlManipulador(caminhoArquivo, conexaoSQL);
-
-                                if(!xmlManipulador.ValidarArquivoXml(caminhoArquivo))
-                                {
-                                    continue;
-                                }
-
-                                string nomeTabela = xmlManipulador.ObterNomeArquivo(caminhoArquivo);
-
-                                //if(nomeTabela == "PATRIMONIO")
-                                //{
-                                //    Console.WriteLine("Aqui");
-                                //}
-
-                                var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
-
-                                DataTable tabela = xmlManipulador.CriarDataTableColuna(colunas);
-
-                                //xmlManipulador.InverterOrdemColunas(tabela);
-
-                                var lista = xmlManipulador.ObterListaXml(nomeTabela, out colunas);
-
-                                xmlManipulador.AssociarDadosLista(lista, tabela);
-
-                                resultado = xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
-                                txtResultado.Text = resultado;
-
-                                List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
-
-                                resultado = xmlManipulador.ExecutarInserts(comandos);
-
-                                listaArquivos.Add(nomeTabela);
-                            }
-
-                            //txtResultado.Text = string.Join(Environment.NewLine, listaArquivos);
-                            txtResultado.Text = "Concluido.";
-
-                        }
-
-                    }
+                    return;
                 }
 
-               
+                var caminhoPasta = arquivoXml.Text;
+
+                if (!Directory.Exists(caminhoPasta))
+                {
+                    return;
+                }
+
+                string conexaoSQL = ValidarCampoConexao();
+
+                if (string.IsNullOrEmpty(conexaoSQL))
+                {
+                    return;
+                }
+
+                var arquivosXml = Directory.GetFiles(caminhoPasta, "*.xml");
+
+                var totalArquivos = arquivosXml.Length;
+                Utilities.IniciarProgresso(progressoBar, totalArquivos);
+
+                await Task.Run(() =>
+                {
+                    foreach (var caminhoArquivo in arquivosXml)
+                    {
+                        XmlManipulador xmlManipulador = new XmlManipulador(caminhoArquivo, conexaoSQL);
+
+                        if (!xmlManipulador.ValidarArquivoXml(caminhoArquivo))
+                        {
+                            continue;
+                        }
+
+                        string nomeTabela = xmlManipulador.ObterNomeArquivo(caminhoArquivo);
+                        var colunas = xmlManipulador.ObterColunasXml(nomeTabela);
+                        DataTable tabela = xmlManipulador.CriarDataTableColuna(colunas);
+                        var lista = xmlManipulador.ObterListaXml(nomeTabela, out colunas);
+                        xmlManipulador.AssociarDadosLista(lista, tabela);
+                        xmlManipulador.CriarTabelaSQL(nomeTabela, colunas);
+                        List<string> comandos = xmlManipulador.GerarComandosInsert(nomeTabela, tabela);
+                        xmlManipulador.ExecutarInserts(comandos);
+
+                        Utilities.AtualizarProgresso(progressoBar, progressoBar.Value + 1);
+                    }
+
+                });
+
+
             }
             catch (Exception ex)
             {
-              
                 MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
+            finally
+            {
+                Utilities.PararProgresso(progressoBar);
+                btnGerarTabela.Enabled = true;
+                MessageBox.Show("Concluído", "Concluído", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            
         }
 
         public string ValidarCampoConexao()
