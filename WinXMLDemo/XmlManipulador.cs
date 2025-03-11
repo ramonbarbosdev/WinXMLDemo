@@ -338,12 +338,39 @@ namespace WinXMLDemo
         {
             List<string> comandosSQL = new List<string>();
 
+            /*Verificação de colunas na tabela existente para não gerar falha de estrutura*/
+
+            SqlConnection conn = AbrirConexao();
+
+            SqlCommand cmd = new SqlCommand($"select * from {nomeTabela} where 1 = 0", conn);
+            cmd.CommandType = CommandType.Text;
+
+            SqlDataReader dr = cmd.ExecuteReader();
+            string[] tabelas = { nomeTabela };
+            DataSet ds = new DataSet();
+            ds.Load(dr, LoadOption.OverwriteChanges, tabelas);
+            dr.Close();
+            dr.Dispose();
+            FecharConexao(conn);
+            DataTable dtEstrutura = ds.Tables[0];
+            string tempColunas = "";
+
+            foreach (DataColumn coluna in dtEstrutura.Columns)
+            {
+                tempColunas += (tempColunas != "" ? "," : "") + coluna.ColumnName;
+            }
+
+            string[] colunas = tempColunas.Split(',');
+
             StringBuilder sqlInsert = new StringBuilder();
             sqlInsert.Append($"INSERT INTO {nomeTabela} (");
 
             foreach (DataColumn coluna in dataTable.Columns)
             {
-                sqlInsert.Append($"[{coluna.ColumnName}], ");
+                if (colunas.Contains(coluna.ColumnName))
+                {
+                    sqlInsert.Append($"[{coluna.ColumnName}], ");
+                }
             }
 
             sqlInsert.Length -= 2; 
@@ -355,16 +382,19 @@ namespace WinXMLDemo
 
                 foreach (DataColumn coluna in dataTable.Columns)
                 {
-                    string valor = row[coluna]?.ToString() ?? "NULL";
-                    //valor = removerCaracteresEspeciais(valor);
+                    if (colunas.Contains(coluna.ColumnName))
+                    {
+                        string valor = row[coluna]?.ToString() ?? "NULL";
+                        //valor = removerCaracteresEspeciais(valor);
 
-                    if (string.IsNullOrEmpty(valor) || valor == "NULL")
-                    {
-                        valores.Append("NULL, ");
-                    }
-                    else
-                    {
-                        valores.Append($"'{valor.Replace("'", "''")}', "); 
+                        if (string.IsNullOrEmpty(valor) || valor == "NULL")
+                        {
+                            valores.Append("NULL, ");
+                        }
+                        else
+                        {
+                            valores.Append($"'{valor.Replace("'", "''")}', ");
+                        }
                     }
                 }
 
