@@ -337,37 +337,45 @@ namespace WinXMLDemo
         public List<string> GerarComandosInsert(string nomeTabela, DataTable dataTable)
         {
             List<string> comandosSQL = new List<string>();
+            string[] colunas;
+            string tempColunas = "";
 
             /*Verificação de colunas na tabela existente para não gerar falha de estrutura*/
 
-            SqlConnection conn = AbrirConexao();
-
-            SqlCommand cmd = new SqlCommand($"select * from {nomeTabela} where 1 = 0", conn);
-            cmd.CommandType = CommandType.Text;
-
-            SqlDataReader dr = cmd.ExecuteReader();
-            string[] tabelas = { nomeTabela };
-            DataSet ds = new DataSet();
-            ds.Load(dr, LoadOption.OverwriteChanges, tabelas);
-            dr.Close();
-            dr.Dispose();
-            FecharConexao(conn);
-            DataTable dtEstrutura = ds.Tables[0];
-            string tempColunas = "";
-
-            foreach (DataColumn coluna in dtEstrutura.Columns)
+            try
             {
-                tempColunas += (tempColunas != "" ? "," : "") + coluna.ColumnName;
-            }
+                SqlConnection conn = AbrirConexao();
 
-            string[] colunas = tempColunas.Split(',');
+                SqlCommand cmd = new SqlCommand($"select * from {nomeTabela} where 1 = 0", conn);
+                cmd.CommandType = CommandType.Text;
+
+                SqlDataReader dr = cmd.ExecuteReader();
+                string[] tabelas = { nomeTabela };
+                DataSet ds = new DataSet();
+                ds.Load(dr, LoadOption.OverwriteChanges, tabelas);
+                dr.Close();
+                dr.Dispose();
+                FecharConexao(conn);
+                DataTable dtEstrutura = ds.Tables[0];
+
+                foreach (DataColumn coluna in dtEstrutura.Columns)
+                {
+                    tempColunas += (tempColunas != "" ? "," : "") + coluna.ColumnName;
+                }
+
+                colunas = tempColunas.Split(',');
+            }
+            catch (Exception ex) 
+            {
+                colunas = tempColunas.Split(',');
+            }
 
             StringBuilder sqlInsert = new StringBuilder();
             sqlInsert.Append($"INSERT INTO {nomeTabela} (");
 
             foreach (DataColumn coluna in dataTable.Columns)
             {
-                if (colunas.Contains(coluna.ColumnName))
+                if (colunas.Contains(coluna.ColumnName) || colunas.Length == 0)
                 {
                     sqlInsert.Append($"[{coluna.ColumnName}], ");
                 }
@@ -382,7 +390,7 @@ namespace WinXMLDemo
 
                 foreach (DataColumn coluna in dataTable.Columns)
                 {
-                    if (colunas.Contains(coluna.ColumnName))
+                    if (colunas.Contains(coluna.ColumnName) || colunas.Length == 0)
                     {
                         string valor = row[coluna]?.ToString() ?? "NULL";
                         //valor = removerCaracteresEspeciais(valor);
