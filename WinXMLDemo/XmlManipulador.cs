@@ -381,7 +381,7 @@ namespace WinXMLDemo
                 }
             }
 
-            sqlInsert.Length -= 2; 
+            sqlInsert.Length -= 2;
             sqlInsert.Append(") VALUES ");
 
             foreach (DataRow row in dataTable.Rows)
@@ -406,7 +406,7 @@ namespace WinXMLDemo
                     }
                 }
 
-                valores.Length -= 2; 
+                valores.Length -= 2;
                 valores.Append(")");
 
                 comandosSQL.Add(sqlInsert.ToString() + valores.ToString());
