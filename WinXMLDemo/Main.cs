@@ -21,7 +21,7 @@ namespace WinXMLDemo
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            arquivoXml.Text = "C:\\Users\\W5IRamon\\Desktop";
+            arquivoXml.Text = "C:\\temp";
             txtServidor.Text = "localhost";
             txtBaseDados.Text = "BANCO_TESTE";
             txtUsuario.Text = "user";
