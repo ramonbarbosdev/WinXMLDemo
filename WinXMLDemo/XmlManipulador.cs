@@ -210,26 +210,23 @@ namespace WinXMLDemo
 
                         if(VerificarTabelaExistente( nomeTabela, cmd))
                         {
-                            return $"Tabela '{nomeTabela}' já existe!";
+                            return AtualizarEstruturaTabela(nomeTabela, colunas, cmd);
+                        }
+
+                        if (colunas.Count == 0)
+                        {
+                            return "Sem registros";
                         }
 
                         StringBuilder sqlCreate = new StringBuilder($"CREATE TABLE {nomeTabela} (");
-                        
+
                         //colunas.Reverse();
                         foreach (string coluna in colunas)
                         {
                             sqlCreate.Append($"[{coluna}] NVARCHAR(MAX), ");
                         }
 
-                        if (colunas.Count > 0)
-                        {
-                            sqlCreate.Length -= 2; 
-                        }
-                        else
-                        {
-                            return "Sem registros";
-                        }
-
+                        sqlCreate.Length -= 2;
                         sqlCreate.Append(");");
 
                         cmd.CommandText = sqlCreate.ToString();
@@ -247,32 +244,73 @@ namespace WinXMLDemo
             }
         }
 
+        private string AtualizarEstruturaTabela(string nomeTabela, List<string> colunas, SqlCommand cmd)
+        {
+            List<string> colunasExistentes = ObterColunasTabela(nomeTabela, cmd);
+
+            List<string> colunasFaltantes = colunas
+                .Where(coluna => !colunasExistentes.Contains(coluna, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            if (colunasFaltantes.Count == 0)
+            {
+                return $"Tabela '{nomeTabela}' já existe e possui todas as colunas necessárias.";
+            }
+
+            foreach (string coluna in colunasFaltantes)
+            {
+                cmd.CommandText = $"ALTER TABLE {nomeTabela} ADD [{coluna}] NVARCHAR(MAX);";
+                cmd.ExecuteNonQuery();
+            }
+
+            return $"Tabela '{nomeTabela}' já existia. Colunas adicionadas: {string.Join(", ", colunasFaltantes)}";
+        }
+
+        private List<string> ObterColunasTabela(string nomeTabela, SqlCommand cmd)
+        {
+            List<string> colunas = new List<string>();
+
+            cmd.Parameters.Clear();
+            cmd.CommandText = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @nomeTabela";
+            cmd.Parameters.AddWithValue("@nomeTabela", nomeTabela);
+
+            using (SqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    colunas.Add(reader.GetString(0));
+                }
+            }
+
+            cmd.Parameters.Clear();
+            return colunas;
+        }
+
         private Boolean VerificarTabelaExistente(string nomeTabela, SqlCommand cmd)
         {
             cmd.CommandText = $"IF OBJECT_ID('{nomeTabela}', 'U') IS NOT NULL SELECT 1 ELSE SELECT 0";
             int existe = (int)cmd.ExecuteScalar();
             if (existe == 1)
             {
-                DialogResult resultado = MessageBox.Show( $"A tabela '{nomeTabela}' já existe. Deseja recria-la?",
-                                                        "Tabela existente",
-                                                         MessageBoxButtons.YesNo,
-                                                         MessageBoxIcon.Question
-                                                         );
+                //DialogResult resultado = MessageBox.Show($"A tabela '{nomeTabela}' já existe. Deseja recria-la?",
+                //                                        "Tabela existente",
+                //                                         MessageBoxButtons.YesNo,
+                //                                         MessageBoxIcon.Question
+                //                                         );
 
-                if (resultado == DialogResult.Yes)
-                {
-                    
-                    cmd.CommandText = $"DROP TABLE {nomeTabela}";
-                    cmd.ExecuteNonQuery();
+                //if (resultado == DialogResult.Yes)
+                //{
 
-                    return false;
-                    
-                }
+                //    cmd.CommandText = $"DROP TABLE {nomeTabela}";
+                //    cmd.ExecuteNonQuery();
+
+                //    return false;
+
+                //}
 
                 return true;
-               
-            }
 
+            }
             return false;
         }
         public List<string> ObterColunasXml(string tagPai)
