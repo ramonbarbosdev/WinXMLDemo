@@ -197,10 +197,26 @@ namespace WinXMLDemo
             return dataTable;
         }
 
+        private static readonly Regex IdentificadorSqlValido = new Regex(@"^[A-Za-z_][A-Za-z0-9_]*$");
+
+        private static void ValidarIdentificador(string nome, string tipo)
+        {
+            if (string.IsNullOrEmpty(nome) || !IdentificadorSqlValido.IsMatch(nome))
+            {
+                throw new ArgumentException($"Nome de {tipo} inválido: '{nome}'");
+            }
+        }
+
         public string CriarTabelaSQL(string nomeTabela, List<string> colunas)
         {
             try
             {
+                ValidarIdentificador(nomeTabela, "tabela");
+                foreach (string coluna in colunas)
+                {
+                    ValidarIdentificador(coluna, "coluna");
+                }
+
                 using (SqlConnection conexao = new SqlConnection(StringConexao))
                 {
                     conexao.Open();
@@ -374,6 +390,8 @@ namespace WinXMLDemo
 
         public List<string> GerarComandosInsert(string nomeTabela, DataTable dataTable)
         {
+            ValidarIdentificador(nomeTabela, "tabela");
+
             List<string> comandosSQL = new List<string>();
             string[] colunas;
             string tempColunas = "";
@@ -400,54 +418,52 @@ namespace WinXMLDemo
                 {
                     tempColunas += (tempColunas != "" ? "," : "") + coluna.ColumnName;
                 }
-
-                colunas = tempColunas.Split(',');
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                colunas = tempColunas.Split(',');
+                Console.WriteLine($"Não foi possível obter a estrutura da tabela '{nomeTabela}': {ex.Message}");
             }
 
-            StringBuilder sqlInsert = new StringBuilder();
-            sqlInsert.Append($"INSERT INTO {nomeTabela} (");
+            colunas = string.IsNullOrEmpty(tempColunas) ? Array.Empty<string>() : tempColunas.Split(',');
+
+            List<string> colunasInsert = new List<string>();
 
             foreach (DataColumn coluna in dataTable.Columns)
             {
-                if (colunas.Contains(coluna.ColumnName) || colunas.Length == 0)
+                if (colunas.Length == 0 || colunas.Contains(coluna.ColumnName))
                 {
-                    sqlInsert.Append($"[{coluna.ColumnName}], ");
+                    ValidarIdentificador(coluna.ColumnName, "coluna");
+                    colunasInsert.Add(coluna.ColumnName);
                 }
             }
 
-            sqlInsert.Length -= 2;
-            sqlInsert.Append(") VALUES ");
+            if (colunasInsert.Count == 0)
+            {
+                return comandosSQL;
+            }
+
+            string prefixoInsert = $"INSERT INTO {nomeTabela} ({string.Join(", ", colunasInsert.Select(c => $"[{c}]"))}) VALUES ";
 
             foreach (DataRow row in dataTable.Rows)
             {
-                StringBuilder valores = new StringBuilder("(");
+                List<string> valores = new List<string>();
 
-                foreach (DataColumn coluna in dataTable.Columns)
+                foreach (string coluna in colunasInsert)
                 {
-                    if (colunas.Contains(coluna.ColumnName) || colunas.Length == 0)
-                    {
-                        string valor = row[coluna]?.ToString() ?? "NULL";
-                        //valor = removerCaracteresEspeciais(valor);
+                    string valor = row[coluna]?.ToString() ?? "NULL";
+                    //valor = removerCaracteresEspeciais(valor);
 
-                        if (string.IsNullOrEmpty(valor) || valor == "NULL")
-                        {
-                            valores.Append("NULL, ");
-                        }
-                        else
-                        {
-                            valores.Append($"'{valor.Replace("'", "''")}', ");
-                        }
+                    if (string.IsNullOrEmpty(valor) || valor == "NULL")
+                    {
+                        valores.Add("NULL");
+                    }
+                    else
+                    {
+                        valores.Add($"'{valor.Replace("'", "''")}'");
                     }
                 }
 
-                valores.Length -= 2;
-                valores.Append(")");
-
-                comandosSQL.Add(sqlInsert.ToString() + valores.ToString());
+                comandosSQL.Add(prefixoInsert + "(" + string.Join(", ", valores) + ")");
             }
 
             return comandosSQL;
@@ -456,10 +472,11 @@ namespace WinXMLDemo
         public string ExecutarInserts(List<string> comandosSQL)
         {
             var conexao = AbrirConexao();
+            SqlTransaction transacao = null;
 
             try
             {
-                var transacao = conexao.BeginTransaction();
+                transacao = conexao.BeginTransaction();
                 SqlCommand cmd = new SqlCommand();
 
                 cmd.Connection = conexao;
@@ -493,6 +510,7 @@ namespace WinXMLDemo
             }
             catch (Exception ex)
             {
+                transacao?.Rollback();
                 MessageBox.Show(ex.Message, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return $"Erro ao inserir registros: {ex.Message}";
             }
@@ -570,8 +588,6 @@ namespace WinXMLDemo
             {
                 return $"Erro desconhecido: {ex.Message} (Linha: {linha}, Posição: {posicao})";
             }
-
-            Console.WriteLine(ex.Message);
         }
 
         static void ValidationEventHandler(object sender, ValidationEventArgs e)
